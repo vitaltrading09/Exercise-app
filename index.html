@@ -39,7 +39,8 @@
     <p class="small" id="statusText">Workout not done</p>
 
     <h2>Water tracker</h2>
-    <button class="water-btn" onclick="logWater(250)">Add 250ml water</button>
+    <button class="water-btn" onclick="logWater(250)">Add 250ml</button>
+    <button class="water-btn" onclick="logWater(-250)">Remove 250ml</button>
     <p class="small" id="waterLog">Total today: 0 ml</p>
   </div>
 
@@ -90,7 +91,17 @@
   let currentRound = 1;
   let totalRounds = 3;
   let timerInterval;
-  let waterTotal = 0;
+
+  // ---------- WATER LOG ----------
+  let waterTotal = parseInt(localStorage.getItem("waterTotal")) || 0;
+  document.getElementById("waterLog").innerText = `Total today: ${waterTotal} ml`;
+
+  function logWater(amount) {
+    waterTotal += amount;
+    if(waterTotal < 0) waterTotal = 0;
+    document.getElementById("waterLog").innerText = `Total today: ${waterTotal} ml`;
+    localStorage.setItem("waterTotal", waterTotal);
+  }
 
   // ---------- LOGIC ----------
   function startWorkout() {
@@ -167,10 +178,6 @@
     document.getElementById("completeScreen").classList.add("hidden");
     document.getElementById("homeScreen").classList.remove("hidden");
   }
-
-  // ---------- WATER LOG ----------
-  function logWater(amount) {
-    waterTotal += amount;
-    document.getElementById("waterLog").innerText = `Total today: ${waterTotal} ml`;
-  }
 </script>
+</body>
+</html>
