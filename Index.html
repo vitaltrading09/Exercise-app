@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Foundation Mode</title>
+
+  <style>
+    /* ---------- RESET ---------- */
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #f4f6f8;
+      color: #222;
+    }
+
+    /* ---------- LAYOUT ---------- */
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 15px;
+      line-height: 1.4;
+      margin: 6px 0;
+    }
+
+    /* ---------- BUTTONS ---------- */
+    button {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: #2e7d32;
+      color: white;
+    }
+
+    .secondary {
+      background: #e0e0e0;
+      color: #222;
+    }
+
+    .disabled {
+      background: #cfd8dc;
+      color: #666;
+      cursor: not-allowed;
+    }
+
+    /* ---------- WORKOUT ---------- */
+    .exercise {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 20px 0 10px;
+      text-align: center;
+    }
+
+    .timer {
+      font-size: 48px;
+      text-align: center;
+      margin: 10px 0;
+    }
+
+    .small {
+      font-size: 13px;
+      color: #666;
+      text-align: center;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- HOME SCREEN -->
+    <div class="card" id="homeScreen">
+      <h1>Today’s focus</h1>
+      <p><strong>10–15 minutes.</strong> One workout. That’s enough.</p>
+
+      <button class="primary" onclick="startWorkout()">Start today’s workout</button>
+      <button class="secondary" onclick="startEmergency()">I only have 10 minutes</button>
+
+      <p class="small" id="statusText">Workout not done</p>
+    </div>
+
+    <!-- WORKOUT SCREEN -->
+    <div class="card hidden" id="workoutScreen">
+      <h2 id="workoutTitle"></h2>
+      <p id="roundInfo"></p>
+
+      <div class="exercise" id="exerciseName"></div>
+      <div class="timer" id="timer">30</div>
+      <p class="small" id="nextExercise"></p>
+
+      <button class="secondary" onclick="skipExercise()">Skip exercise</button>
+    </div>
+
+    <!-- COMPLETE SCREEN -->
+    <div class="card hidden" id="completeScreen">
+      <h2>Workout done</h2>
+      <p>You showed up. That counts.</p>
+
+      <p class="small">Hydration reminder:</p>
+      <p class="small">✔ Drink a glass of water now</p>
+
+      <button class="primary" onclick="goHome()">Finish</button>
+    </div>
+
+  </div>
+
+  <script>
+    /* ---------- DATA ---------- */
+
+    const workoutA = [
+      { name: "Squats", time: 30 },
+      { name: "Push-ups", time: 30 },
+      { name: "Mountain Climbers", time: 30 },
+      { name: "Plank", time: 30 }
+    ];
+
+    const emergencyWorkout = [
+      { name: "Squats", time: 40 },
+      { name: "Push-ups", time: 30 },
+      { name: "Plank", time: 45 },
+      { name: "March in place", time: 60 }
+    ];
+
+    let currentWorkout = [];
+    let currentExercise = 0;
+    let currentRound = 1;
+    let totalRounds = 3;
+    let timerInterval;
+
+    /* ---------- LOGIC ---------- */
+
+    function startWorkout() {
+      currentWorkout = workoutA;
+      totalRounds = 3;
+      startSession("Workout A");
+    }
+
+    function startEmergency() {
+      currentWorkout = emergencyWorkout;
+      totalRounds = 2;
+      startSession("Emergency Workout");
+    }
+
+    function startSession(title) {
+      document.getElementById("homeScreen").classList.add("hidden");
+      document.getElementById("workoutScreen").classList.remove("hidden");
+
+      document.getElementById("workoutTitle").innerText = title;
+      currentExercise = 0;
+      currentRound = 1;
+
+      startExercise();
+    }
+
+    function startExercise() {
+      const ex = currentWorkout[currentExercise];
+      document.getElementById("exerciseName").innerText = ex.name;
+      document.getElementById("roundInfo").innerText =
+        `Round ${currentRound} of ${totalRounds}`;
+
+      let timeLeft = ex.time;
+      document.getElementById("timer").innerText = timeLeft;
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").innerText = timeLeft;
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          nextExercise();
+        }
+      }, 1000);
+    }
+
+    function nextExercise() {
+      currentExercise++;
+
+      if (currentExercise >= currentWorkout.length) {
+        currentExercise = 0;
+        currentRound++;
+
+        if (currentRound > totalRounds) {
+          finishWorkout();
+          return;
+        }
+      }
+
+      startExercise();
+    }
+
+    function skipExercise() {
+      clearInterval(timerInterval);
+      nextExercise();
+    }
+
+    function finishWorkout() {
+      document.getElementById("workoutScreen").classList.add("hidden");
+      document.getElementById("completeScreen").classList.remove("hidden");
+      document.getElementById("statusText").innerText = "Workout completed";
+    }
+
+    function goHome() {
+      document.getElementById("completeScreen").classList.add("hidden");
+      document.getElementById("homeScreen").classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>
